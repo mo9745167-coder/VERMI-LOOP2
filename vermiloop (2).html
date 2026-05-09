@@ -1,0 +1,1774 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VermiLoop – نظام الزراعة الذكية بالديدان</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --emerald-deep: #0d2818;
+  --emerald-mid: #1a4a2e;
+  --emerald-light: #2d7a4f;
+  --emerald-glow: #3aac6e;
+  --gold: #c9a84c;
+  --gold-light: #e8c87a;
+  --gold-pale: #f5e9c8;
+  --white: #f8faf8;
+  --off-white: #eef4ee;
+  --text-muted: #8aac96;
+  --danger: #d94040;
+  --warning: #e8a020;
+  --ideal: #3aac6e;
+  --card-bg: rgba(26,74,46,0.55);
+  --border: rgba(201,168,76,0.25);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Tajawal', sans-serif;
+  background: var(--emerald-deep);
+  color: var(--white);
+  direction: rtl;
+  overflow-x: hidden;
+}
+
+/* BRAND NAME LTR FIX */
+.brand-name {
+  direction: ltr;
+  display: inline-block;
+  unicode-bidi: embed;
+  font-family: 'Playfair Display', serif;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+/* ─── NOISE TEXTURE OVERLAY ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--emerald-deep); }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+
+/* ─── NAV ─── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: rgba(13,40,24,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.nav-logo .worm-icon {
+  font-size: 1.6rem;
+  animation: wiggle 3s ease-in-out infinite;
+}
+
+@keyframes wiggle {
+  0%,100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.nav-logo .brand-name {
+  font-size: 1.5rem;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(201,168,76,0.4);
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 0.2rem;
+  align-items: center;
+}
+
+.nav-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: all 0.3s;
+}
+
+.nav-links a:hover {
+  color: var(--gold);
+  background: rgba(201,168,76,0.1);
+}
+
+/* ─── HERO ─── */
+#hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding-top: 70px;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(45,122,79,0.3) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 20% 80%, rgba(201,168,76,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse 30% 30% at 80% 20%, rgba(58,172,110,0.15) 0%, transparent 50%);
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(45,122,79,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(45,122,79,0.08) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.hero-content {
+  position: relative;
+  text-align: center;
+  max-width: 900px;
+  padding: 2rem;
+  z-index: 1;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(201,168,76,0.15);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  padding: 6px 18px;
+  font-size: 0.82rem;
+  color: var(--gold-light);
+  margin-bottom: 1.5rem;
+  animation: fadeDown 0.8s ease forwards;
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-title {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  animation: fadeUp 0.9s ease forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-title .brand-name {
+  color: var(--gold);
+  display: block;
+  font-size: 1.2em;
+  text-shadow: 0 0 40px rgba(201,168,76,0.5);
+}
+
+.hero-subtitle {
+  font-size: 1.15rem;
+  color: var(--text-muted);
+  font-weight: 300;
+  max-width: 600px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.8;
+  animation: fadeUp 1s ease 0.2s both;
+}
+
+.hero-cta {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeUp 1s ease 0.4s both;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: var(--emerald-deep);
+  border: none;
+  padding: 14px 32px;
+  border-radius: 50px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(201,168,76,0.4);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  padding: 14px 32px;
+  border-radius: 50px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-outline:hover {
+  background: rgba(201,168,76,0.1);
+  transform: translateY(-3px);
+}
+
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-top: 4rem;
+  flex-wrap: wrap;
+  animation: fadeUp 1s ease 0.6s both;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--gold);
+}
+
+.stat-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ─── SECTIONS ─── */
+section {
+  padding: 5rem 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.section-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-tag {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  padding: 4px 14px;
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: 20px;
+}
+
+.section-title {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 900;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.section-title span { color: var(--gold); }
+
+.section-subtitle {
+  font-size: 1rem;
+  color: var(--text-muted);
+  max-width: 600px;
+  line-height: 1.8;
+  margin-bottom: 3rem;
+}
+
+/* ─── DIVIDER ─── */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 0 auto;
+  max-width: 800px;
+  opacity: 0.3;
+}
+
+/* ─── FOUNDER SECTION ─── */
+#founder {
+  background: linear-gradient(180deg, transparent, rgba(26,74,46,0.2), transparent);
+}
+
+.founder-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 3rem;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 3rem;
+  align-items: center;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+
+.founder-card::before {
+  content: '';
+  position: absolute;
+  top: -60px; left: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(201,168,76,0.1), transparent 70%);
+  border-radius: 50%;
+}
+
+.founder-photo {
+  width: 240px;
+  height: 300px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(45,122,79,0.4), rgba(13,40,24,0.8));
+  border: 2px dashed rgba(201,168,76,0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.founder-photo::after {
+  content: '👩‍🔬';
+  font-size: 4rem;
+  display: block;
+}
+
+.founder-photo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.founder-info h2 {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+
+.founder-title {
+  color: var(--gold);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.founder-bio {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  line-height: 1.9;
+  margin-bottom: 1.5rem;
+}
+
+.founder-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.founder-tag {
+  background: rgba(201,168,76,0.1);
+  border: 1px solid rgba(201,168,76,0.3);
+  color: var(--gold-light);
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* ─── CALCULATOR ─── */
+#calculator {
+  background: linear-gradient(180deg, transparent, rgba(13,40,24,0.5), transparent);
+}
+
+.calc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.calc-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2rem;
+  backdrop-filter: blur(20px);
+  transition: border-color 0.3s;
+}
+
+.calc-card:hover { border-color: rgba(201,168,76,0.5); }
+
+.calc-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.calc-icon {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: var(--emerald-deep);
+  flex-shrink: 0;
+}
+
+.calc-card-header h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.calc-card-header p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.form-control {
+  width: 100%;
+  background: rgba(13,40,24,0.7);
+  border: 1px solid rgba(45,122,79,0.4);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--white);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.92rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  direction: rtl;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+}
+
+.form-control option {
+  background: var(--emerald-mid);
+}
+
+.calc-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--emerald-light), var(--emerald-glow));
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  color: var(--white);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: all 0.3s;
+}
+
+.calc-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(45,122,79,0.4);
+}
+
+.result-box {
+  margin-top: 1rem;
+  background: rgba(13,40,24,0.8);
+  border: 1px solid rgba(58,172,110,0.3);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  display: none;
+}
+
+.result-box.show { display: block; }
+
+.result-value {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--emerald-glow);
+}
+
+.result-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ENV MONITOR */
+.env-gauges {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.gauge-wrap {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(13,40,24,0.5);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.gauge-label { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; }
+
+.gauge-value {
+  font-size: 1.8rem;
+  font-weight: 900;
+}
+
+.gauge-unit { font-size: 0.75rem; color: var(--text-muted); }
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.status-ideal { background: rgba(58,172,110,0.15); color: var(--ideal); border: 1px solid rgba(58,172,110,0.3); }
+.status-warning { background: rgba(232,160,32,0.15); color: var(--warning); border: 1px solid rgba(232,160,32,0.3); }
+.status-danger { background: rgba(217,64,64,0.15); color: var(--danger); border: 1px solid rgba(217,64,64,0.3); }
+
+/* ─── GUIDE ─── */
+#guide {
+  background: linear-gradient(180deg, transparent, rgba(26,74,46,0.15), transparent);
+}
+
+.steps-container {
+  position: relative;
+  margin-top: 2rem;
+}
+
+.steps-line {
+  position: absolute;
+  right: 28px;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--gold), transparent);
+}
+
+.step-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  align-items: start;
+  position: relative;
+}
+
+.step-number {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--emerald-mid), var(--emerald-light));
+  border: 2px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--gold);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.step-content {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  backdrop-filter: blur(20px);
+  flex: 1;
+}
+
+.step-content h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--gold-light);
+}
+
+.step-content p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
+/* ─── COMPARISON TABLE ─── */
+#comparison {
+  background: linear-gradient(180deg, transparent, rgba(13,40,24,0.6), transparent);
+}
+
+.comparison-table-wrap {
+  overflow-x: auto;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  margin-top: 2rem;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(26,74,46,0.3);
+  backdrop-filter: blur(20px);
+}
+
+.comparison-table th {
+  padding: 1.2rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+  border-bottom: 2px solid var(--border);
+}
+
+.comparison-table th:first-child { text-align: right; }
+
+.th-vermi {
+  color: var(--emerald-glow);
+  background: rgba(45,122,79,0.2);
+}
+
+.th-chemical {
+  color: var(--danger);
+  background: rgba(217,64,64,0.1);
+}
+
+.comparison-table td {
+  padding: 1rem 1.5rem;
+  font-size: 0.88rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(201,168,76,0.1);
+  color: var(--text-muted);
+}
+
+.comparison-table td:first-child {
+  text-align: right;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.comparison-table tr:hover td { background: rgba(201,168,76,0.04); }
+
+.highlight-good { color: var(--ideal) !important; font-weight: 700 !important; }
+.highlight-bad { color: var(--danger) !important; }
+
+.highlight-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--emerald-light), var(--emerald-glow));
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-right: 4px;
+}
+
+/* ─── INNOVATION ─── */
+#innovation {
+  background: linear-gradient(135deg, rgba(45,122,79,0.1), rgba(201,168,76,0.05));
+}
+
+.innovation-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.innovation-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2rem;
+  backdrop-filter: blur(20px);
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.innovation-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+}
+
+.innovation-card::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 100px; height: 100px;
+  background: radial-gradient(circle, rgba(201,168,76,0.08), transparent 70%);
+}
+
+.innovation-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.innovation-card h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--gold-light);
+}
+
+.innovation-card p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
+.innovation-stats {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.inno-stat {
+  background: rgba(13,40,24,0.5);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 14px;
+  text-align: center;
+  flex: 1;
+  min-width: 80px;
+}
+
+.inno-stat-val {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--gold);
+}
+
+.inno-stat-lbl {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ─── PRICING ─── */
+#pricing {
+  background: linear-gradient(180deg, transparent, rgba(26,74,46,0.2), transparent);
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.pricing-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  backdrop-filter: blur(20px);
+  transition: all 0.3s;
+  position: relative;
+  text-align: center;
+}
+
+.pricing-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+}
+
+.pricing-card.featured {
+  border-color: var(--gold);
+  background: linear-gradient(180deg, rgba(201,168,76,0.1), rgba(26,74,46,0.55));
+}
+
+.pricing-badge-top {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  color: var(--emerald-deep);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 16px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.pricing-emoji {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.pricing-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.pricing-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.pricing-price {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--gold);
+  margin-bottom: 0.25rem;
+}
+
+.pricing-unit {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.pricing-features {
+  list-style: none;
+  text-align: right;
+  margin-bottom: 2rem;
+}
+
+.pricing-features li {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(201,168,76,0.08);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pricing-features li::before {
+  content: '✓';
+  color: var(--emerald-glow);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ─── FOOTER ─── */
+footer {
+  background: rgba(13,40,24,0.95);
+  border-top: 1px solid var(--border);
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.footer-logo {
+  font-size: 1.8rem;
+  color: var(--gold);
+  margin-bottom: 1rem;
+}
+
+.footer-tagline {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.footer-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover { color: var(--gold); }
+
+.footer-copyright {
+  font-size: 0.78rem;
+  color: rgba(138,172,150,0.5);
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 900px) {
+  .calc-grid { grid-template-columns: 1fr; }
+  .innovation-grid { grid-template-columns: 1fr; }
+  .pricing-grid { grid-template-columns: 1fr; max-width: 400px; margin-left: auto; margin-right: auto; }
+  .founder-card { grid-template-columns: 1fr; text-align: center; }
+  .founder-photo { margin: 0 auto; }
+  .steps-line { display: none; }
+  .nav-links { display: none; }
+}
+
+@media (max-width: 600px) {
+  .hero-stats { gap: 1.5rem; }
+  .env-gauges { grid-template-columns: 1fr; }
+}
+
+/* ─── SCROLL REVEAL ─── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* range slider */
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(45,122,79,0.3);
+  outline: none;
+  margin-top: 8px;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--gold);
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <a href="#hero" class="nav-logo">
+    <span class="worm-icon">🪱</span>
+    <span class="brand-name">VermiLoop</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#founder">المؤسس</a></li>
+    <li><a href="#calculator">الحاسبة الذكية</a></li>
+    <li><a href="#guide">دليل الزراعة</a></li>
+    <li><a href="#comparison">المقارنة</a></li>
+    <li><a href="#innovation">الابتكار</a></li>
+    <li><a href="#pricing">الأسعار</a></li>
+  </ul>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🌱 نظام الزراعة الذكية بالديدان الأرضية</div>
+    <h1 class="hero-title">
+      مرحباً بك في<br>
+      <span class="brand-name">VermiLoop</span>
+    </h1>
+    <p class="hero-subtitle">
+      منصة رقمية متكاملة لإدارة مزارع الديدان الأرضية وإنتاج السماد العضوي الفائق الجودة —
+      مدعومة بالذكاء الاصطناعي والحسابات الزراعية الدقيقة.
+    </p>
+    <div class="hero-cta">
+      <a href="#calculator" class="btn-primary">ابدأ بالحاسبة الذكية</a>
+      <a href="#guide" class="btn-outline">دليل الزراعة</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <div class="stat-value">+20%</div>
+        <div class="stat-label">زيادة في المحصول</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">-30%</div>
+        <div class="stat-label">توفير المياه</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">100%</div>
+        <div class="stat-label">عضوي طبيعي</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">12</div>
+        <div class="stat-label">نوع تربة مدعوم</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── FOUNDER ─── -->
+<section id="founder">
+  <div class="section-inner">
+    <div class="section-tag">المؤسس والمطور التقني</div>
+    <h2 class="section-title">العقل المبدع وراء <span>المنصة</span></h2>
+
+    <div class="founder-card reveal">
+      <div class="founder-photo">
+        <div class="founder-photo-placeholder">
+          <div style="font-size:4rem">👩‍🔬</div>
+          <span style="font-size:0.75rem;color:var(--text-muted)">الصورة الشخصية</span>
+        </div>
+      </div>
+      <div class="founder-info">
+        <h2>مريم أسامة عبادة</h2>
+        <div class="founder-title">
+          🎓 طالبة بكلية الزراعة — جامعة المنيا &nbsp;|&nbsp;
+          💻 مطورة نظام <span class="brand-name">VermiLoop</span> الرقمي
+        </div>
+        <p class="founder-bio">
+          طالبة شغوفة بتقاطع الزراعة المستدامة والتكنولوجيا الرقمية. أسّست نظام
+          <span class="brand-name">VermiLoop</span>
+          كمشروع أكاديمي ابتكاري يهدف إلى تحويل الزراعة التقليدية نحو مستقبل أكثر استدامة وكفاءة.
+          صمّمت وبرمجت المنصة الرقمية الكاملة بما تشمله من حاسبات زراعية ذكية، وخوارزميات تحليل التربة،
+          وأنظمة مراقبة بيئية — كل ذلك في سبيل تمكين المزارعين من اتخاذ قرارات مستنيرة وعلمية.
+        </p>
+        <div class="founder-tags">
+          <span class="founder-tag">زراعة عضوية</span>
+          <span class="founder-tag">تطوير الويب</span>
+          <span class="founder-tag">ديدان التسميد</span>
+          <span class="founder-tag">ذكاء اصطناعي زراعي</span>
+          <span class="founder-tag">جامعة المنيا</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── CALCULATOR ─── -->
+<section id="calculator">
+  <div class="section-inner">
+    <div class="section-tag">الحاسبة الذكية</div>
+    <h2 class="section-title">محرك <span>الحسابات الزراعية</span></h2>
+    <p class="section-subtitle">أدخل بيانات مزرعتك للحصول على توصيات دقيقة مخصصة لنوع تربتك ومساحتك وبيئتك.</p>
+
+    <div class="calc-grid">
+
+      <!-- WORM DENSITY -->
+      <div class="calc-card reveal">
+        <div class="calc-card-header">
+          <div class="calc-icon">🪱</div>
+          <div>
+            <h3>حساب كثافة الديدان</h3>
+            <p>احسب عدد الديدان المطلوب لمساحتك</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>المساحة</label>
+          <input type="number" id="worm-area" class="form-control" placeholder="أدخل المساحة" min="0" step="0.1">
+        </div>
+        <div class="form-group">
+          <label>وحدة المساحة</label>
+          <select id="worm-unit" class="form-control">
+            <option value="m2">متر مربع (م²)</option>
+            <option value="feddan">فدان</option>
+            <option value="qirat">قيراط</option>
+            <option value="hectare">هكتار</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>كثافة الزراعة المستهدفة</label>
+          <select id="worm-density" class="form-control">
+            <option value="2">خفيفة — 2 ديدان/م²</option>
+            <option value="5" selected>متوسطة — 5 ديدان/م²</option>
+            <option value="10">مكثفة — 10 ديدان/م²</option>
+            <option value="15">مكثفة جداً — 15 ديدان/م²</option>
+          </select>
+        </div>
+        <button class="calc-btn" onclick="calcWorms()">احسب عدد الديدان</button>
+        <div class="result-box" id="worm-result">
+          <div class="result-value" id="worm-result-val"></div>
+          <div class="result-label" id="worm-result-lbl"></div>
+        </div>
+      </div>
+
+      <!-- SOIL FERTILIZER -->
+      <div class="calc-card reveal">
+        <div class="calc-card-header">
+          <div class="calc-icon">🌿</div>
+          <div>
+            <h3>كمية السماد حسب التربة</h3>
+            <p>توصيات مخصصة لكل نوع من أنواع التربة</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>نوع التربة</label>
+          <select id="soil-type" class="form-control">
+            <option value="sandy">رملية (Sandy)</option>
+            <option value="clay">طينية (Clay)</option>
+            <option value="loamy">طميية (Loamy)</option>
+            <option value="silty">غرينية (Silty)</option>
+            <option value="peaty">خثية (Peaty)</option>
+            <option value="chalky">كلسية (Chalky)</option>
+            <option value="sandy-clay">رملية-طينية (Sandy-Clay)</option>
+            <option value="clay-loam">طينية-طميية (Clay-Loam)</option>
+            <option value="sandy-loam">رملية-طميية (Sandy-Loam)</option>
+            <option value="silty-clay">غرينية-طينية (Silty-Clay)</option>
+            <option value="silty-loam">غرينية-طميية (Silty-Loam)</option>
+            <option value="saline">ملحية (Saline)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>المساحة</label>
+          <input type="number" id="soil-area" class="form-control" placeholder="أدخل المساحة" min="0" step="0.1">
+        </div>
+        <div class="form-group">
+          <label>وحدة المساحة</label>
+          <select id="soil-unit" class="form-control">
+            <option value="feddan">فدان</option>
+            <option value="genzir">جنزير</option>
+            <option value="qirat">قيراط</option>
+            <option value="m2">متر مربع</option>
+            <option value="hectare">هكتار</option>
+          </select>
+        </div>
+        <button class="calc-btn" onclick="calcFertilizer()">احسب كمية السماد</button>
+        <div class="result-box" id="soil-result">
+          <div class="result-value" id="soil-result-val"></div>
+          <div class="result-label" id="soil-result-lbl"></div>
+        </div>
+      </div>
+
+      <!-- ENV MONITOR -->
+      <div class="calc-card reveal">
+        <div class="calc-card-header">
+          <div class="calc-icon">🌡️</div>
+          <div>
+            <h3>المراقب البيئي التفاعلي</h3>
+            <p>تحقق من البيئة المثالية لديدانك</p>
+          </div>
+        </div>
+        <div class="env-gauges">
+          <div class="gauge-wrap">
+            <div class="gauge-label">🌡️ درجة الحرارة</div>
+            <input type="range" id="temp-slider" min="0" max="50" value="22" oninput="updateEnv()">
+            <div class="gauge-value" id="temp-val" style="color:var(--ideal)">22</div>
+            <div class="gauge-unit">درجة مئوية</div>
+            <div class="status-indicator" id="temp-status">
+              <span>●</span> مثالية
+            </div>
+          </div>
+          <div class="gauge-wrap">
+            <div class="gauge-label">💧 الرطوبة</div>
+            <input type="range" id="humid-slider" min="0" max="100" value="70" oninput="updateEnv()">
+            <div class="gauge-value" id="humid-val" style="color:var(--ideal)">70</div>
+            <div class="gauge-unit">نسبة مئوية %</div>
+            <div class="status-indicator" id="humid-status">
+              <span>●</span> مثالية
+            </div>
+          </div>
+        </div>
+        <div class="result-box show" id="env-advice" style="margin-top:0.5rem">
+          <div class="result-value" style="font-size:1rem" id="env-advice-text">✅ البيئة مثالية للديدان — استمر هكذا!</div>
+        </div>
+      </div>
+
+      <!-- YIELD -->
+      <div class="calc-card reveal">
+        <div class="calc-card-header">
+          <div class="calc-icon">⚖️</div>
+          <div>
+            <h3>حساب الإنتاجية والغذاء</h3>
+            <p>قدّر الناتج والغذاء اليومي بدقة</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>كمية الغذاء المقدمة يومياً (كجم)</label>
+          <input type="number" id="feed-amount" class="form-control" placeholder="مثال: 10" min="0" step="0.5">
+        </div>
+        <div class="form-group">
+          <label>وزن الديدان الكلي (كجم)</label>
+          <input type="number" id="worm-weight" class="form-control" placeholder="مثال: 5" min="0" step="0.1">
+        </div>
+        <div class="form-group">
+          <label>فترة التحويل (أيام)</label>
+          <input type="number" id="conversion-days" class="form-control" placeholder="مثال: 30" min="1" max="365" value="30">
+        </div>
+        <button class="calc-btn" onclick="calcYield()">احسب الإنتاجية</button>
+        <div class="result-box" id="yield-result">
+          <div class="result-value" id="yield-result-val"></div>
+          <div class="result-label" id="yield-result-lbl"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── GUIDE ─── -->
+<section id="guide">
+  <div class="section-inner">
+    <div class="section-tag">دليل الزراعة</div>
+    <h2 class="section-title">الخطوات العلمية <span>للزراعة بالديدان</span></h2>
+    <p class="section-subtitle">اتبع هذه الخطوات المدروسة أكاديمياً لضمان أعلى إنتاجية وأفضل جودة للسماد.</p>
+
+    <div class="steps-container">
+      <div class="steps-line"></div>
+
+      <div class="step-item reveal">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>اختيار الموقع والحاوية</h4>
+          <p>اختر مكاناً مظللاً بعيداً عن الشمس المباشرة، تتراوح درجة حرارته بين 15–25°م. الحاويات المثالية مصنوعة من البلاستيك أو الخشب غير المعالج بمساحة لا تقل عن 0.5 م² ولكل كيلوغرام من الديدان.</p>
+        </div>
+      </div>
+
+      <div class="step-item reveal">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>تحضير الوسط (الفراش)</h4>
+          <p>استخدم خليطاً من ورق الجرائد الممزق، ونخالة الأرز، وروث المواشي المتخمر بنسبة 2:1:1. يجب أن تكون رطوبة الوسط 70-80% (عند الضغط تخرج قطرات قليلة) ودرجة حموضته pH بين 6.5 و7.5.</p>
+        </div>
+      </div>
+
+      <div class="step-item reveal">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>إضافة الديدان الأرضية</h4>
+          <p>أنسب أنواع الديدان لإنتاج الفيرميكمبوست هي <em>Eisenia fetida</em> (ديدة التسميد الحمراء). أضف الديدان برفق في الصباح الباكر أو عند غياب الشمس. تجنب الإضاءة الساطعة لأن الديدان تهرب من الضوء.</p>
+        </div>
+      </div>
+
+      <div class="step-item reveal">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <h4>التغذية الصحيحة</h4>
+          <p>تُغذى الديدان بمخلفات المطبخ الخضراء والبنية (قشور الخضار والفاكهة، بقايا القهوة والشاي، ورق الشجر). تجنب اللحوم ومنتجات الألبان والبصل والثوم والحمضيات. قدم الغذاء بمعدل 50% من وزن الديدان يومياً.</p>
+        </div>
+      </div>
+
+      <div class="step-item reveal">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <h4>المراقبة البيئية</h4>
+          <p>راقب يومياً درجة الحرارة (لا تتجاوز 30°م) والرطوبة (60-80%). قلّب الفراش أسبوعياً لتهويته. الرائحة الكريهة تدل على تعفن الغذاء أو ارتفاع الرطوبة، في حين تدل الرائحة الترابية الطيبة على بيئة صحية.</p>
+        </div>
+      </div>
+
+      <div class="step-item reveal">
+        <div class="step-number">6</div>
+        <div class="step-content">
+          <h4>الحصاد وجمع السماد</h4>
+          <p>بعد 60-90 يوماً يصبح الفيرميكمبوست جاهزاً؛ ستلاحظ تحول المادة إلى لون بني داكن وقوام شبيه بالقهوة. تُجمع الديدان باستخدام طريقة الضوء (تهرب الديدان من الضوء نحو القاع)، ثم يُجفف السماد ويُنخل.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── COMPARISON ─── -->
+<section id="comparison">
+  <div class="section-inner">
+    <div class="section-tag">المقارنة العلمية</div>
+    <h2 class="section-title">الفيرميكمبوست <span>مقابل الأسمدة الكيميائية</span></h2>
+    <p class="section-subtitle">دراسة مقارنة علمية شاملة تُثبت التفوق الواضح للسماد العضوي الحيوي على نظيره الصناعي.</p>
+
+    <div class="comparison-table-wrap reveal">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>معيار المقارنة</th>
+            <th class="th-vermi">🪱 فيرميكمبوست <span class="brand-name">VermiLoop</span></th>
+            <th class="th-chemical">⚗️ الأسمدة الكيميائية</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>زيادة المحصول</td>
+            <td class="highlight-good"><span class="highlight-badge">+20%</span> زيادة موثقة علمياً</td>
+            <td>5–10% زيادة قصيرة المدى</td>
+          </tr>
+          <tr>
+            <td>توفير مياه الري</td>
+            <td class="highlight-good"><span class="highlight-badge">-30%</span> تحسين الاحتفاظ بالماء</td>
+            <td class="highlight-bad">لا يؤثر، بل يزيد الجفاف</td>
+          </tr>
+          <tr>
+            <td>صحة التربة على المدى البعيد</td>
+            <td class="highlight-good">تحسين بيولوجي وفيزيائي مستدام</td>
+            <td class="highlight-bad">تدهور بنية التربة تدريجياً</td>
+          </tr>
+          <tr>
+            <td>الأثر البيئي</td>
+            <td class="highlight-good">✅ صفري — يعيد المواد للطبيعة</td>
+            <td class="highlight-bad">❌ تلوث مياه جوفية ونهرية</td>
+          </tr>
+          <tr>
+            <td>جودة المنتج الزراعي</td>
+            <td class="highlight-good">طعم أفضل، قيمة غذائية أعلى</td>
+            <td>جودة معقولة، بقايا كيميائية</td>
+          </tr>
+          <tr>
+            <td>التكلفة على 5 سنوات</td>
+            <td class="highlight-good">تراجع 40-60% بعد الإنتاج الذاتي</td>
+            <td class="highlight-bad">ارتفاع مستمر مع أسعار النفط</td>
+          </tr>
+          <tr>
+            <td>نسبة النيتروجين المتاح</td>
+            <td class="highlight-good">تحرر تدريجي ومستدام 8-12 أسبوعاً</td>
+            <td class="highlight-bad">غسيل سريع في 2-3 أسابيع</td>
+          </tr>
+          <tr>
+            <td>تنشيط الميكروبات المفيدة</td>
+            <td class="highlight-good">✅ يضاعف الكائنات الدقيقة النافعة</td>
+            <td class="highlight-bad">❌ يقتل الغالبية العظمى منها</td>
+          </tr>
+          <tr>
+            <td>المخاطر الصحية للمزارع</td>
+            <td class="highlight-good">✅ آمن تماماً — لا مواد سامة</td>
+            <td class="highlight-bad">❌ مخاطر تسمم وأمراض جلدية</td>
+          </tr>
+          <tr>
+            <td>شهادات الزراعة العضوية</td>
+            <td class="highlight-good">✅ يُحقق معايير الزراعة العضوية</td>
+            <td class="highlight-bad">❌ يُلغي أي شهادة عضوية</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── INNOVATION ─── -->
+<section id="innovation">
+  <div class="section-inner">
+    <div class="section-tag">الابتكار والبحث</div>
+    <h2 class="section-title">أبعاد <span>الابتكار التكنولوجي</span></h2>
+    <p class="section-subtitle">
+      لا تتوقف <span class="brand-name">VermiLoop</span> عند حدود السماد العضوي — بل تتجاوزه نحو آفاق ابتكارية رائدة في قطاع الأغذية والمستقبل الزراعي.
+    </p>
+
+    <div class="innovation-grid">
+
+      <div class="innovation-card reveal">
+        <div class="innovation-icon">🐟</div>
+        <h3>بروتين الديدان في أعلاف الأسماك</h3>
+        <p>
+          تُعدّ الديدان الأرضية مصدراً استثنائياً للبروتين عالي الجودة بنسبة تتراوح بين 60-70% من وزنها الجاف.
+          تُسهم هذه التقنية في خفض تكاليف أعلاف الأسماك بنسبة تصل إلى 35%، وهي بديل عضوي متجدد لدقيق السمك المستورد.
+        </p>
+        <div class="innovation-stats">
+          <div class="inno-stat"><div class="inno-stat-val">70%</div><div class="inno-stat-lbl">محتوى بروتيني</div></div>
+          <div class="inno-stat"><div class="inno-stat-val">-35%</div><div class="inno-stat-lbl">تكلفة الأعلاف</div></div>
+          <div class="inno-stat"><div class="inno-stat-val">100%</div><div class="inno-stat-lbl">طبيعي عضوي</div></div>
+        </div>
+      </div>
+
+      <div class="innovation-card reveal">
+        <div class="innovation-icon">🧬</div>
+        <h3>إنزيمات الديدان في الطب والصناعة</h3>
+        <p>
+          تُفرز الديدان الأرضية أنزيمات حيوية نادرة ذات تطبيقات دوائية وصناعية واسعة. يبحث العلماء في استخدامها
+          لتحليل البلاستيك (تكنولوجيا حيوية خضراء) وفي تطوير مضادات تخثر طبيعية.
+        </p>
+        <div class="innovation-stats">
+          <div class="inno-stat"><div class="inno-stat-val">12+</div><div class="inno-stat-lbl">نوع إنزيم نشط</div></div>
+          <div class="inno-stat"><div class="inno-stat-val">3</div><div class="inno-stat-lbl">قطاعات صناعية</div></div>
+          <div class="inno-stat"><div class="inno-stat-val">جديد</div><div class="inno-stat-lbl">أبحاث جارية</div></div>
+        </div>
+      </div>
+
+      <div class="innovation-card reveal">
+        <div class="innovation-icon">♻️</div>
+        <h3>معالجة النفايات العضوية الحضرية</h3>
+        <p>
+          مزارع <span class="brand-name">VermiLoop</span> الحضرية قادرة على معالجة ما يصل إلى 50 طن/شهر من النفايات العضوية وتحويلها
+          إلى سماد عالي القيمة — نموذج دائري يُحوّل مشكلة إلى ثروة.
+        </p>
+        <div class="innovation-stats">
+          <div class="inno-stat"><div class="inno-stat-val">50T</div><div class="inno-stat-lbl">نفايات/شهر</div></div>
+          <div class="inno-stat"><div class="inno-stat-val">صفر</div><div class="inno-stat-lbl">هدر حيوي</div></div>
+          <div class="inno-stat"><div class="inno-stat-val">دائري</div><div class="inno-stat-lbl">اقتصاد أخضر</div></div>
+        </div>
+      </div>
+
+      <div class="innovation-card reveal">
+        <div class="innovation-icon">📱</div>
+        <h3>مراقبة ذكية عبر الإنترنت</h3>
+        <p>
+          نظام <span class="brand-name">VermiLoop</span> الرقمي يوفر لوحة تحكم متكاملة مع تنبيهات فورية، وتوصيات مدعومة بالبيانات،
+          وتقارير إنتاجية أسبوعية — كل ذلك من هاتفك في أي مكان.
+        </p>
+        <div class="innovation-stats">
+          <div class="inno-stat"><div class="inno-stat-val">24/7</div><div class="inno-stat-lbl">مراقبة مستمرة</div></div>
+          <div class="inno-stat"><div class="inno-stat-val">AI</div><div class="inno-stat-lbl">توصيات ذكية</div></div>
+          <div class="inno-stat"><div class="inno-stat-val">فوري</div><div class="inno-stat-lbl">تنبيه لحظي</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── PRICING ─── -->
+<section id="pricing">
+  <div class="section-inner">
+    <div class="section-tag">الأسعار والعروض</div>
+    <h2 class="section-title">باقات <span>منتجات</span> <span class="brand-name">VermiLoop</span></h2>
+    <p class="section-subtitle">أسعار تنافسية وشفافة لمنتجاتنا عالية الجودة — من الديدان الحية إلى السماد المعبأ.</p>
+
+    <div class="pricing-grid">
+
+      <div class="pricing-card reveal">
+        <span class="pricing-emoji">🪱</span>
+        <h3>ديدان التسميد الحية</h3>
+        <p class="pricing-desc">نوع Eisenia fetida، مضمونة الصحة والنشاط، مناسبة للمزارع الصغيرة والحدائق</p>
+        <div class="pricing-price">85 جنيه</div>
+        <div class="pricing-unit">لكل 500 جرام</div>
+        <ul class="pricing-features">
+          <li>ديدان نشطة مضمونة</li>
+          <li>شهادة صحية مرفقة</li>
+          <li>تعليمات التربية</li>
+          <li>دعم فني مجاني 30 يوماً</li>
+        </ul>
+        <a href="#" class="btn-outline" style="width:100%;text-align:center;">اطلب الآن</a>
+      </div>
+
+      <div class="pricing-card featured reveal">
+        <div class="pricing-badge-top">⭐ الأكثر طلباً</div>
+        <span class="pricing-emoji">🌿</span>
+        <h3>باقة الفيرميكمبوست المميزة</h3>
+        <p class="pricing-desc">سماد عضوي فائق الجودة، محلل بالكامل، جاهز للاستخدام الفوري في جميع أنواع التربة</p>
+        <div class="pricing-price">120 جنيه</div>
+        <div class="pricing-unit">لكل 10 كيلوجرام</div>
+        <ul class="pricing-features">
+          <li>تحليل مختبري معتمد</li>
+          <li>تعبئة محكمة ومرقمة</li>
+          <li>توصية تطبيق خاصة بتربتك</li>
+          <li>ضمان جودة 6 أشهر</li>
+          <li>خصم 10% للطلبات الكبرى</li>
+        </ul>
+        <a href="#" class="btn-primary" style="width:100%;text-align:center;">اطلب الباقة المميزة</a>
+      </div>
+
+      <div class="pricing-card reveal">
+        <span class="pricing-emoji">🏭</span>
+        <h3>باقة المزارع الكبرى</h3>
+        <p class="pricing-desc">حلول متكاملة للمزارع التجارية تشمل الإنشاء والتدريب والمتابعة الدورية</p>
+        <div class="pricing-price">تواصل معنا</div>
+        <div class="pricing-unit">أسعار مخصصة حسب المشروع</div>
+        <ul class="pricing-features">
+          <li>تصميم المزرعة من الصفر</li>
+          <li>تدريب الكوادر البشرية</li>
+          <li>توريد ديدان بالجملة</li>
+          <li>جدول صيانة دوري</li>
+          <li>تقارير إنتاجية شهرية</li>
+        </ul>
+        <a href="#" class="btn-outline" style="width:100%;text-align:center;">احجز استشارة</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-logo">
+    🪱 <span class="brand-name">VermiLoop</span>
+  </div>
+  <div class="footer-tagline">نُغلق الحلقة — نُعيد الحياة للتربة</div>
+  <div class="footer-links">
+    <a href="#hero">الرئيسية</a>
+    <a href="#founder">المؤسس</a>
+    <a href="#calculator">الحاسبة</a>
+    <a href="#guide">الدليل</a>
+    <a href="#comparison">المقارنة</a>
+    <a href="#innovation">الابتكار</a>
+    <a href="#pricing">الأسعار</a>
+  </div>
+  <div class="footer-copyright">
+    © 2025 <span class="brand-name">VermiLoop</span> — مريم أسامة عبادة · كلية الزراعة، جامعة المنيا
+    · جميع الحقوق محفوظة
+  </div>
+</footer>
+
+<script>
+/* ─── UNIT CONVERTERS (to m²) ─── */
+const toM2 = {
+  m2: 1,
+  feddan: 4200,
+  qirat: 175,
+  hectare: 10000,
+  genzir: 350
+};
+
+/* ─── SOIL FERTILIZER RATES (kg/m²) ─── */
+const soilRates = {
+  'sandy':      5.0,
+  'clay':       3.0,
+  'loamy':      2.5,
+  'silty':      2.8,
+  'peaty':      1.8,
+  'chalky':     3.5,
+  'sandy-clay': 4.0,
+  'clay-loam':  2.7,
+  'sandy-loam': 3.2,
+  'silty-clay': 2.9,
+  'silty-loam': 2.6,
+  'saline':     6.0
+};
+
+const soilNames = {
+  'sandy':'رملية','clay':'طينية','loamy':'طميية','silty':'غرينية',
+  'peaty':'خثية','chalky':'كلسية','sandy-clay':'رملية-طينية',
+  'clay-loam':'طينية-طميية','sandy-loam':'رملية-طميية',
+  'silty-clay':'غرينية-طينية','silty-loam':'غرينية-طميية','saline':'ملحية'
+};
+
+function formatNum(n) {
+  if (n >= 1e6) return (n/1e6).toFixed(2) + ' مليون';
+  if (n >= 1e3) return (n/1e3).toFixed(2) + ' ألف';
+  return n.toFixed(0);
+}
+
+/* WORM DENSITY CALC */
+function calcWorms() {
+  const area = parseFloat(document.getElementById('worm-area').value);
+  const unit = document.getElementById('worm-unit').value;
+  const density = parseFloat(document.getElementById('worm-density').value);
+  const resultBox = document.getElementById('worm-result');
+  const resultVal = document.getElementById('worm-result-val');
+  const resultLbl = document.getElementById('worm-result-lbl');
+
+  if (!area || area <= 0) { alert('يرجى إدخال مساحة صحيحة'); return; }
+
+  const m2 = area * toM2[unit];
+  const worms = Math.round(m2 * density);
+  const weightKg = (worms * 0.5 / 1000).toFixed(2);
+
+  resultVal.textContent = formatNum(worms) + ' دودة';
+  resultLbl.innerHTML = `
+    المساحة: ${m2.toLocaleString()} م² &nbsp;|&nbsp;
+    الكثافة: ${density} ديدان/م² &nbsp;|&nbsp;
+    الوزن التقريبي: ~${weightKg} كجم
+  `;
+  resultBox.classList.add('show');
+}
+
+/* SOIL FERTILIZER CALC */
+function calcFertilizer() {
+  const area = parseFloat(document.getElementById('soil-area').value);
+  const unit = document.getElementById('soil-unit').value;
+  const soil = document.getElementById('soil-type').value;
+  const resultBox = document.getElementById('soil-result');
+  const resultVal = document.getElementById('soil-result-val');
+  const resultLbl = document.getElementById('soil-result-lbl');
+
+  if (!area || area <= 0) { alert('يرجى إدخال مساحة صحيحة'); return; }
+
+  const m2 = area * toM2[unit];
+  const rate = soilRates[soil];
+  const totalKg = (m2 * rate).toFixed(1);
+  const totalTon = (totalKg / 1000).toFixed(2);
+
+  resultVal.textContent = totalKg + ' كجم';
+  resultLbl.innerHTML = `
+    التربة: ${soilNames[soil]} &nbsp;|&nbsp;
+    المعدل: ${rate} كجم/م² &nbsp;|&nbsp;
+    ما يعادل: ${totalTon} طن
+  `;
+  resultBox.classList.add('show');
+}
+
+/* ENV MONITOR */
+function updateEnv() {
+  const temp = parseFloat(document.getElementById('temp-slider').value);
+  const humid = parseFloat(document.getElementById('humid-slider').value);
+
+  const tempVal = document.getElementById('temp-val');
+  const humidVal = document.getElementById('humid-val');
+  const tempStatus = document.getElementById('temp-status');
+  const humidStatus = document.getElementById('humid-status');
+  const advice = document.getElementById('env-advice-text');
+
+  tempVal.textContent = temp;
+  humidVal.textContent = humid;
+
+  // Temp logic
+  let tempClass, tempMsg;
+  if (temp >= 15 && temp <= 25) {
+    tempClass = 'status-ideal'; tempMsg = '● مثالية';
+    tempVal.style.color = 'var(--ideal)';
+  } else if ((temp >= 10 && temp < 15) || (temp > 25 && temp <= 30)) {
+    tempClass = 'status-warning'; tempMsg = '● تحذير';
+    tempVal.style.color = 'var(--warning)';
+  } else {
+    tempClass = 'status-danger'; tempMsg = '● خطر!';
+    tempVal.style.color = 'var(--danger)';
+  }
+  tempStatus.className = 'status-indicator ' + tempClass;
+  tempStatus.innerHTML = tempMsg;
+
+  // Humidity logic
+  let humidClass, humidMsg;
+  if (humid >= 60 && humid <= 80) {
+    humidClass = 'status-ideal'; humidMsg = '● مثالية';
+    humidVal.style.color = 'var(--ideal)';
+  } else if ((humid >= 50 && humid < 60) || (humid > 80 && humid <= 90)) {
+    humidClass = 'status-warning'; humidMsg = '● تحذير';
+    humidVal.style.color = 'var(--warning)';
+  } else {
+    humidClass = 'status-danger'; humidMsg = '● خطر!';
+    humidVal.style.color = 'var(--danger)';
+  }
+  humidStatus.className = 'status-indicator ' + humidClass;
+  humidStatus.innerHTML = humidMsg;
+
+  // Combined advice
+  let advText;
+  if (tempClass === 'status-ideal' && humidClass === 'status-ideal') {
+    advText = '✅ البيئة مثالية للديدان — استمر هكذا!';
+  } else if (tempClass === 'status-danger' || humidClass === 'status-danger') {
+    let msgs = [];
+    if (tempClass === 'status-danger') {
+      msgs.push(temp < 10 ? `⚠️ درجة الحرارة منخفضة جداً (${temp}°م) — أدفئ المزرعة فوراً` : `⚠️ درجة الحرارة مرتفعة خطيرة (${temp}°م) — برّد المزرعة فوراً`);
+    }
+    if (humidClass === 'status-danger') {
+      msgs.push(humid < 50 ? `⚠️ الرطوبة منخفضة جداً (${humid}%) — أضف ماءً برشاش خفيف` : `⚠️ الرطوبة مرتفعة جداً (${humid}%) — قلل الري وهوّد الحاوية`);
+    }
+    advText = msgs.join(' &nbsp;|&nbsp; ');
+  } else {
+    let msgs = [];
+    if (tempClass === 'status-warning') {
+      msgs.push(temp < 15 ? `🌡️ حرارة منخفضة قليلاً (${temp}°م)` : `🌡️ حرارة مرتفعة قليلاً (${temp}°م)`);
+    }
+    if (humidClass === 'status-warning') {
+      msgs.push(humid < 60 ? `💧 رطوبة منخفضة قليلاً (${humid}%)` : `💧 رطوبة مرتفعة قليلاً (${humid}%)`);
+    }
+    advText = '⚠️ ' + msgs.join(' — ') + ' — راقب الوضع عن كثب';
+  }
+  advice.innerHTML = advText;
+}
+
+/* YIELD CALC */
+function calcYield() {
+  const feedKg = parseFloat(document.getElementById('feed-amount').value);
+  const wormKg = parseFloat(document.getElementById('worm-weight').value);
+  const days = parseInt(document.getElementById('conversion-days').value) || 30;
+  const resultBox = document.getElementById('yield-result');
+  const resultVal = document.getElementById('yield-result-val');
+  const resultLbl = document.getElementById('yield-result-lbl');
+
+  let lines = [];
+
+  if (feedKg > 0) {
+    const compost = (feedKg * 0.5 * days).toFixed(1);
+    lines.push(`سماد متوقع بعد ${days} يوم: ${compost} كجم`);
+  }
+
+  if (wormKg > 0) {
+    const dailyFeed = (wormKg * 0.5).toFixed(2);
+    lines.push(`الغذاء اليومي الموصى به: ${dailyFeed} كجم`);
+    const wormGrowth = (wormKg * 1.3).toFixed(2);
+    lines.push(`توقع كتلة الديدان بعد شهر: ~${wormGrowth} كجم`);
+  }
+
+  if (lines.length === 0) { alert('يرجى إدخال قيمة واحدة على الأقل'); return; }
+
+  resultVal.textContent = lines[0];
+  resultLbl.innerHTML = lines.slice(1).join('<br>');
+  resultBox.classList.add('show');
+}
+
+/* ─── SCROLL REVEAL ─── */
+const revealEls = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+revealEls.forEach(el => observer.observe(el));
+
+/* init env on load */
+updateEnv();
+</script>
+</body>
+</html>
